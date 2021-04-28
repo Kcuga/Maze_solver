@@ -1,6 +1,7 @@
 package maze;
+import java.io.Serializable;
 
-public class Tile
+public class Tile implements Serializable
 {
 
 	public enum Type
@@ -46,13 +47,13 @@ public class Tile
 
 	public boolean isNavigable()
 	{
-		if (type == Type.CORRIDOR)
+		if (type == Type.WALL)
 		{
-			return true;
+			return false;
 		}
 		else
 		{
-			return false;
+			return true;
 		}
 	}
 

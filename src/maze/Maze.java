@@ -4,12 +4,13 @@ import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
 
 
 
-public class Maze
+public class Maze implements Serializable
 {
 
 	public class Coordinate
@@ -71,23 +72,31 @@ public class Maze
 		while(line != null)
 		{
 			row = new ArrayList<Tile>();
+			if(maze.tiles.size() > 0 && line.length() != maze.tiles.get(0).size())
+                    throw new RaggedMazeException();
 			for(int i=0; i<=line.length()-1; i++)
 			{
 				tile = Tile.fromChar(line.charAt(i));
 
 				if(line.charAt(i)=='e')
-				{
-					maze.entrance = tile;
-				}
+					if(maze.getEntrance() == null)
+						maze.entrance = tile;
+					else
+						throw new MultipleEntranceException();
 				else if(line.charAt(i)=='x')
-				{
-					maze.exit = tile;
-				}
+					if(maze.getExit() == null)
+						maze.exit = tile;
+					else
+						throw new MultipleExitException();
 				row.add(tile);
 			}
 			maze.tiles.add(row);
 			line = reader.readLine();
 		}
+		if(maze.getEntrance() == null)
+			throw new NoEntranceException();
+		if(maze.getExit() == null)
+			throw new NoExitException();
 		return maze;
 
 	}
@@ -145,7 +154,10 @@ public class Maze
 		int x = c.getX();
 		int y = c.getY();
 
-		return tiles.get(tiles.size()-y).get(x);
+		if(x < tiles.get(0).size() && y < tiles.size() && x >= 0 && y >= 0)
+			return tiles.get(tiles.size()-y-1).get(x);
+		else
+			return null;
 	}
 
 	public Coordinate getTileLocation(Tile t)
@@ -158,7 +170,7 @@ public class Maze
 			{
 				j = row.indexOf(t);
 				int x = j;
-				int y = tiles.size() - i;
+				int y = tiles.size() -i -1;
 
 				return new Coordinate(x,y);
 			}
@@ -172,33 +184,24 @@ public class Maze
 		return tiles;
 	}
 
-	private void setEntrance(Tile t) throws InvalidMazeException
+	private void setEntrance(Tile t) throws  MultipleEntranceException
 	{
-
-		for (int i=0; i<=tiles.size()-1; i++)
-		{
-			List<Tile> row = tiles.get(i);
-			if(row.contains(t))
-			{
-				entrance = t;
+			if(getTileLocation(t) == null)
 				return;
-			}
-		}
-		throw new InvalidMazeException("Entrance out of bounds!");
+			if(getEntrance() != null)
+        throw new MultipleEntranceException();
+			else
+				entrance = t;
 	}
 
-	private void setExit(Tile t) throws InvalidMazeException
+	private void setExit(Tile t) throws MultipleExitException
 	{
-		for (int i=0; i<=tiles.size()-1; i++)
-		{
-			List<Tile> row = tiles.get(i);
-			if(row.contains(t))
-			{
-				exit = t;
-				return;
-			}
-		}
-		throw new InvalidMazeException("Exit out of bounds!");
+		if(getTileLocation(t) == null)
+			return;
+		if(getExit() != null)
+			throw new MultipleExitException();
+		else
+			exit = t;
 	}
 
 	public String toString()
