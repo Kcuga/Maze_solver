@@ -45,6 +45,11 @@ public class RouteFinder implements Serializable
     return route;
   }
 
+  public List<Tile> getChecked()
+  {
+    return checked;
+  }
+
   public boolean isFinished()
   {
     return finished;
